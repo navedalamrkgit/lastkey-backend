@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -14,11 +15,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -26,9 +22,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
-
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
     public SecurityConfig(
@@ -48,23 +42,18 @@ public class SecurityConfig {
 
         http
                 /*
-                 * Enable CORS using the configuration defined
-                 * in corsConfigurationSource().
+                 * Existing CorsConfig.java ke CorsConfigurationSource
+                 * bean ko use karega.
                  */
-                .cors(cors ->
-                        cors.configurationSource(
-                                corsConfigurationSource()
-                        )
-                )
+                .cors(Customizer.withDefaults())
 
                 /*
-                 * CSRF is disabled because this backend uses
-                 * stateless JWT authentication.
+                 * Stateless JWT API me CSRF disable rahega.
                  */
                 .csrf(csrf -> csrf.disable())
 
                 /*
-                 * Do not create or use HTTP sessions.
+                 * Backend HTTP session create nahi karega.
                  */
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
@@ -73,8 +62,8 @@ public class SecurityConfig {
                 )
 
                 /*
-                 * Custom handlers for authentication and
-                 * authorization errors.
+                 * Unauthorized aur access denied responses ke liye
+                 * custom handlers.
                  */
                 .exceptionHandling(exception ->
                         exception
@@ -89,7 +78,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         /*
-                         * Allow browser CORS preflight requests.
+                         * Browser ke CORS preflight requests allow karo.
                          */
                         .requestMatchers(
                                 HttpMethod.OPTIONS,
@@ -116,7 +105,7 @@ public class SecurityConfig {
                         .permitAll()
 
                         /*
-                         * Protected endpoints.
+                         * Explicitly protected endpoints.
                          */
                         .requestMatchers(
                                 "/api/v1/notifications/**",
@@ -125,16 +114,15 @@ public class SecurityConfig {
                         .authenticated()
 
                         /*
-                         * Every other endpoint requires JWT
-                         * authentication.
+                         * Baaki sab endpoints login ke baad access honge.
                          */
                         .anyRequest()
                         .authenticated()
                 )
 
                 /*
-                 * Run JWT authentication before Spring Security's
-                 * username/password filter.
+                 * JWT filter ko Spring Security ke default
+                 * authentication filter se pehle run karo.
                  */
                 .addFilterBefore(
                         jwtAuthenticationFilter,
@@ -142,73 +130,6 @@ public class SecurityConfig {
                 );
 
         return http.build();
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-
-        CorsConfiguration configuration =
-                new CorsConfiguration();
-
-        /*
-         * Only these frontend origins can access the backend
-         * from a browser.
-         */
-        configuration.setAllowedOrigins(
-                List.of(
-                        "http://localhost:5173",
-                        "http://127.0.0.1:5173",
-                        "https://lastkey-frontend.vercel.app"
-                )
-        );
-
-        configuration.setAllowedMethods(
-                List.of(
-                        "GET",
-                        "POST",
-                        "PUT",
-                        "PATCH",
-                        "DELETE",
-                        "OPTIONS"
-                )
-        );
-
-        configuration.setAllowedHeaders(
-                List.of(
-                        "Authorization",
-                        "Content-Type",
-                        "Accept",
-                        "Origin",
-                        "X-Requested-With"
-                )
-        );
-
-        configuration.setExposedHeaders(
-                List.of(
-                        "Authorization"
-                )
-        );
-
-        /*
-         * Allows credentials such as Authorization headers.
-         * Exact origins are used instead of "*".
-         */
-        configuration.setAllowCredentials(true);
-
-        /*
-         * Browser can cache the preflight response for one hour.
-         */
-        configuration.setMaxAge(3600L);
-
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
-
-        source.registerCorsConfiguration(
-                "/**",
-                configuration
-        );
-
-        return source;
     }
 
     @Bean
