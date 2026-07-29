@@ -1,0 +1,154 @@
+# =====================================================
+# APPLICATION
+# =====================================================
+
+spring.application.name=backend
+
+# Local profile by default.
+# Deployment platform must set SPRING_PROFILES_ACTIVE=prod
+spring.profiles.active=${SPRING_PROFILES_ACTIVE:local}
+
+# =====================================================
+# SERVER
+# =====================================================
+
+server.port=${PORT:8080}
+server.forward-headers-strategy=framework
+
+server.error.include-message=never
+server.error.include-binding-errors=never
+server.error.include-stacktrace=never
+server.error.include-exception=false
+
+server.shutdown=graceful
+spring.lifecycle.timeout-per-shutdown-phase=30s
+
+# =====================================================
+# DATABASE / JPA COMMON
+# =====================================================
+
+spring.jpa.open-in-view=false
+spring.jpa.properties.hibernate.jdbc.time_zone=UTC
+
+# =====================================================
+# JWT
+# =====================================================
+
+jwt.secret=LastKeySuperSecureJwtSecretKey2026ByNavedAlamForDevelopmentOnly123456
+
+jwt.access-token-expiration=${JWT_ACCESS_EXPIRATION:900000}
+jwt.refresh-token-expiration=${JWT_REFRESH_EXPIRATION:604800000}
+
+# =====================================================
+# ACCOUNT SECURITY
+# =====================================================
+
+app.security.max-failed-login-attempts=${MAX_FAILED_LOGIN_ATTEMPTS:5}
+app.security.account-lock-duration-minutes=${ACCOUNT_LOCK_DURATION_MINUTES:30}
+
+# =====================================================
+# FILE UPLOAD
+# =====================================================
+
+spring.servlet.multipart.enabled=true
+spring.servlet.multipart.max-file-size=${MAX_FILE_SIZE:20MB}
+spring.servlet.multipart.max-request-size=${MAX_REQUEST_SIZE:21MB}
+
+# =====================================================
+# FILE STORAGE
+# =====================================================
+
+# Private encrypted documents
+file.upload-dir=${FILE_UPLOAD_DIR:storage/documents}
+
+# Public profile images
+app.upload.profile-images-dir=${PROFILE_IMAGES_DIR:uploads/profile-images}
+app.upload.profile-images-url=${PROFILE_IMAGES_URL:/uploads/profile-images}
+
+# =====================================================
+# DOCUMENT ENCRYPTION
+# =====================================================
+
+encryption.enabled=${ENCRYPTION_ENABLED:true}
+encryption.algorithm=AES/GCM/NoPadding
+encryption.key==4iUJ+Bi6MYmrUkwvpivxvyjrqvdVhdFXD6LhEesD8l8=
+
+encryption.key-version=${ENCRYPTION_KEY_VERSION:v1}
+encryption.iv-length=12
+encryption.authentication-tag-length=128
+encryption.buffer-size=8192
+
+# =====================================================
+# CORS
+# =====================================================
+
+app.cors.allowed-origins=${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+app.cors.allowed-methods=GET,POST,PUT,PATCH,DELETE,OPTIONS
+app.cors.allowed-headers=Authorization,Content-Type,Accept,X-Requested-With,X-Request-Id
+app.cors.exposed-headers=X-Request-Id
+app.cors.allow-credentials=true
+app.cors.max-age=3600
+
+# =====================================================
+# BREVO SMTP EMAIL
+# =====================================================
+
+spring.mail.host=smtp-relay.brevo.com
+spring.mail.port=587
+
+
+
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+spring.mail.properties.mail.smtp.starttls.required=true
+
+spring.mail.properties.mail.smtp.connectiontimeout=10000
+spring.mail.properties.mail.smtp.timeout=10000
+spring.mail.properties.mail.smtp.writetimeout=10000
+
+spring.mail.test-connection=false
+
+app.mail.from=iamnavedkhn@gmail.com
+app.mail.from-name=backend1
+
+# =====================================================
+# SWAGGER / OPENAPI
+# =====================================================
+
+springdoc.api-docs.enabled=${SWAGGER_ENABLED:true}
+springdoc.swagger-ui.enabled=${SWAGGER_ENABLED:true}
+springdoc.swagger-ui.path=/swagger-ui.html
+springdoc.api-docs.path=/v3/api-docs
+
+# =====================================================
+# ACTUATOR
+# =====================================================
+
+management.endpoints.web.exposure.include=health,info
+management.endpoint.health.probes.enabled=true
+management.endpoint.health.show-details=never
+
+management.info.env.enabled=true
+management.info.java.enabled=true
+management.info.os.enabled=true
+management.info.build.enabled=true
+
+info.app.name=LastKey Backend
+info.app.description=AI Powered Digital Legacy Management Platform
+info.app.version=1.0.0
+info.app.author=Naved Alam
+
+# =====================================================
+# LOGGING
+# =====================================================
+
+logging.config=classpath:logback-spring.xml
+logging.file.path=${LOG_PATH:logs}
+
+logging.level.root=INFO
+logging.level.com.lastkey.backend=INFO
+logging.level.org.springframework.security=WARN
+logging.level.org.springframework.web=WARN
+logging.level.org.hibernate.SQL=WARN
+logging.level.org.hibernate.orm.jdbc.bind=WARN
+logging.level.org.springframework.mail=WARN
