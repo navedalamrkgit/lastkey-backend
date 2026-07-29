@@ -1,0 +1,43 @@
+# Git
+.git
+.gitignore
+.github
+
+# Maven build
+target/
+*.class
+
+# IDE
+.idea/
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+.springBeans
+.sts4-cache/
+
+# Logs
+logs/
+*.log
+application.log
+
+# Uploaded/generated files
+storage/
+uploads/
+temp/
+tmp/
+
+# Environment files
+.env
+.env.*
+application-local.properties
+application-prod.properties.backup
+
+# Operating system
+.DS_Store
+Thumbs.db
+
+# Documentation and backups
+*.bak
+*.tmp
