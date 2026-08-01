@@ -29,6 +29,7 @@ public class JwtAuthenticationFilter
             CustomUserDetailsService customUserDetailsService
     ) {
         this.jwtService = jwtService;
+
         this.customUserDetailsService =
                 customUserDetailsService;
     }
@@ -40,19 +41,44 @@ public class JwtAuthenticationFilter
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
+        /*
+         * CORS preflight request ke saath access token
+         * nahi aata. Isliye OPTIONS request ko direct
+         * filter chain me continue karte hain.
+         */
+        if (HttpMethodConstants.OPTIONS.equalsIgnoreCase(
+                request.getMethod()
+        )) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String authorizationHeader =
                 request.getHeader("Authorization");
 
+        /*
+         * Login, registration aur other public requests
+         * ke paas Bearer token nahi hoga.
+         *
+         * Missing token par 403 return nahi karna.
+         * Request ko Spring Security tak continue karna hai.
+         */
         if (authorizationHeader == null
                 || !authorizationHeader.startsWith(
-                "Bearer "
-        )) {
+                        "Bearer "
+                )) {
+
             filterChain.doFilter(request, response);
             return;
         }
 
         String jwtToken =
                 authorizationHeader.substring(7);
+
+        if (jwtToken.isBlank()) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String userEmail;
 
@@ -61,6 +87,14 @@ public class JwtAuthenticationFilter
                     jwtService.extractUsername(jwtToken);
 
         } catch (Exception exception) {
+
+            /*
+             * Invalid or expired token ki condition me
+             * authentication set nahi hogi.
+             *
+             * Protected endpoint par Spring Security
+             * CustomAuthenticationEntryPoint se 401 return karega.
+             */
             filterChain.doFilter(request, response);
             return;
         }
@@ -70,36 +104,60 @@ public class JwtAuthenticationFilter
                 .getContext()
                 .getAuthentication() == null) {
 
-            UserDetails userDetails =
-                    customUserDetailsService
-                            .loadUserByUsername(userEmail);
+            try {
+                UserDetails userDetails =
+                        customUserDetailsService
+                                .loadUserByUsername(
+                                        userEmail
+                                );
 
-            if (jwtService.isTokenValid(
-                    jwtToken,
-                    userDetails
-            )) {
+                if (jwtService.isTokenValid(
+                        jwtToken,
+                        userDetails
+                )) {
 
-                UsernamePasswordAuthenticationToken
-                        authenticationToken =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
-                        );
+                    UsernamePasswordAuthenticationToken
+                            authenticationToken =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities()
+                            );
 
-                authenticationToken.setDetails(
-                        new WebAuthenticationDetailsSource()
-                                .buildDetails(request)
-                );
+                    authenticationToken.setDetails(
+                            new WebAuthenticationDetailsSource()
+                                    .buildDetails(request)
+                    );
 
-                SecurityContextHolder
-                        .getContext()
-                        .setAuthentication(
-                                authenticationToken
-                        );
+                    SecurityContextHolder
+                            .getContext()
+                            .setAuthentication(
+                                    authenticationToken
+                            );
+                }
+
+            } catch (Exception exception) {
+
+                /*
+                 * User not found, disabled account or token
+                 * validation failure ke case me authentication
+                 * set nahi hogi.
+                 */
+                SecurityContextHolder.clearContext();
             }
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    /*
+     * Extra import avoid karne ke liye simple constant class.
+     */
+    private static final class HttpMethodConstants {
+
+        private static final String OPTIONS = "OPTIONS";
+
+        private HttpMethodConstants() {
+        }
     }
 }

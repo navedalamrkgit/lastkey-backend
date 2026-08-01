@@ -1,17 +1,15 @@
 package com.lastkey.backend.config;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-@Configuration
-@RequiredArgsConstructor
-public class CorsConfig {
+import java.util.List;
 
-    private final CorsProperties corsProperties;
+@Configuration
+public class CorsConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -19,29 +17,63 @@ public class CorsConfig {
         CorsConfiguration configuration =
                 new CorsConfiguration();
 
-        configuration.setAllowedOrigins(
-                corsProperties.getAllowedOrigins()
+        /*
+         * setAllowedOriginPatterns use kiya hai because
+         * Vercel har deployment ke liye naya URL generate
+         * kar sakta hai.
+         *
+         * Example:
+         * https://lastkey-frontend-abc123-naved-khan.vercel.app
+         */
+        configuration.setAllowedOriginPatterns(
+                List.of(
+                        "http://localhost:5173",
+                        "http://127.0.0.1:5173",
+                        "https://lastkey-frontend-*.vercel.app"
+                )
         );
 
         configuration.setAllowedMethods(
-                corsProperties.getAllowedMethods()
+                List.of(
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "PATCH",
+                        "DELETE",
+                        "OPTIONS"
+                )
         );
 
         configuration.setAllowedHeaders(
-                corsProperties.getAllowedHeaders()
+                List.of(
+                        "Authorization",
+                        "Content-Type",
+                        "Accept",
+                        "Origin",
+                        "X-Requested-With",
+                        "Cache-Control"
+                )
         );
 
         configuration.setExposedHeaders(
-                corsProperties.getExposedHeaders()
+                List.of(
+                        "Authorization",
+                        "Content-Disposition",
+                        "Location"
+                )
         );
 
-        configuration.setAllowCredentials(
-                corsProperties.isAllowCredentials()
-        );
+        /*
+         * Cookies ya authenticated browser requests ko
+         * support karne ke liye.
+         */
+        configuration.setAllowCredentials(true);
 
-        configuration.setMaxAge(
-                corsProperties.getMaxAge()
-        );
+        /*
+         * Browser preflight response ko 1 hour tak cache
+         * kar sakta hai.
+         */
+        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
