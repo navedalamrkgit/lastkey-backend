@@ -29,7 +29,7 @@ public class CorsConfig {
                 List.of(
                         "http://localhost:5173",
                         "http://127.0.0.1:5173",
-                        "https://lastkey-frontend-*.vercel.app"
+                        "https://vercel.com/naved-khan/lastkey-frontend"
                 )
         );
 
